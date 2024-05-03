@@ -1,7 +1,9 @@
 import json
 import urllib.request
 import os
-
+from io import BytesIO
+import boto3
+from PIL import Image
 
 # This is the main function that AWS Lambda will invoke when the function is triggered
 def lambda_handler(event, context):
