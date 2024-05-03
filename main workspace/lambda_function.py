@@ -14,8 +14,8 @@ def lambda_handler(event, context):
         # URL for the generated image
         response_url = response['data'][0]['url'] 
         
-        # Send reply to the user
-        send_reply(message_event, response_url)
+        # Send generated image as reply to the user
+        send_image_reply(message_event, response_url)
         
     # Returning a response indicating successful execution
     return {
@@ -83,4 +83,28 @@ def send_reply(message_event, image_url):
     req = urllib.request.Request(url_message_reply, data=json.dumps(body).encode('utf-8'), method='POST', headers=headers)
     with urllib.request.urlopen(req) as res:
         pass
-            
+
+
+def send_image_reply(message_event, image_url):
+    # URL for the LINE Messaging API - reply
+    url_message_reply = 'https://api.line.me/v2/bot/message/reply'
+        
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + os.environ.get('LINE_CHANNEL_ACCESS_TOKEN')
+    }
+        
+    body = {
+        'replyToken': message_event['replyToken'],
+        'messages': [
+            {
+                "type": "image",
+                "originalContentUrl": image_url,
+                "previewImageUrl": image_url
+            }
+        ]
+    }
+
+    req = urllib.request.Request(url_message_reply, data=json.dumps(body).encode('utf-8'), method='POST', headers=headers)
+    with urllib.request.urlopen(req) as res:
+        pass
