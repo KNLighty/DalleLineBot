@@ -3,7 +3,12 @@ import urllib.request
 import os
 from io import BytesIO
 import boto3
-from PIL import Image
+from PIL import Image # type: ignore
+
+STANDARD_LINE_HEADER = {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer ' + os.environ.get('LINE_CHANNEL_ACCESS_TOKEN')
+}
 
 # This is the main function that AWS Lambda will invoke when the function is triggered
 def lambda_handler(event, context):
@@ -29,10 +34,7 @@ def lambda_handler(event, context):
 def start_loading_animation(user_id):
     url_loading_animation = 'https://api.line.me/v2/bot/chat/loading/start'
     
-    headers = {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + os.environ.get('LINE_CHANNEL_ACCESS_TOKEN')
-    }
+    headers = STANDARD_LINE_HEADER
         
     body = {
         "chatId": user_id,
@@ -63,38 +65,11 @@ def generate(message):
     return "NO DATA"
 
 
-def send_reply(message_event, image_url):
-    # URL for the LINE Messaging API - reply
-    url_message_reply = 'https://api.line.me/v2/bot/message/reply'
-        
-    headers = {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + os.environ.get('LINE_CHANNEL_ACCESS_TOKEN')
-    }
-        
-    body = {
-        'replyToken': message_event['replyToken'],
-        'messages': [
-            {
-                "type": "text",
-                "text": image_url
-            }
-        ]
-    }
-
-    req = urllib.request.Request(url_message_reply, data=json.dumps(body).encode('utf-8'), method='POST', headers=headers)
-    with urllib.request.urlopen(req) as res:
-        pass
-
-
 def send_image_reply(message_event, image_url):
     # URL for the LINE Messaging API - reply
     url_message_reply = 'https://api.line.me/v2/bot/message/reply'
         
-    headers = {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + os.environ.get('LINE_CHANNEL_ACCESS_TOKEN')
-    }
+    headers = STANDARD_LINE_HEADER
         
     body = {
         'replyToken': message_event['replyToken'],
