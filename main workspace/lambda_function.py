@@ -4,6 +4,7 @@ import os
 from io import BytesIO
 import boto3
 from PIL import Image # type: ignore
+from deep_translator import GoogleTranslator
 
 STANDARD_LINE_HEADER = {
     'Content-Type': 'application/json',
@@ -15,9 +16,12 @@ def lambda_handler(event, context):
     # Iterate over each message event in the received payload
     for message_event in json.loads(event['body'])['events']:
         start_loading_animation(message_event['source']['userId'])
+
+        user_response = message_event['message']['text']
+        user_response_en_translation = translate_to_english(user_response)
         
         # Generate response from DALL-E
-        response = generate(message_event['message']['text'])
+        response = generate(user_response_en_translation)
         # URL for the generated image
         response_url = response['data'][0]['url'] 
         
@@ -85,3 +89,7 @@ def send_image_reply(message_event, image_url):
     req = urllib.request.Request(url_message_reply, data=json.dumps(body).encode('utf-8'), method='POST', headers=headers)
     with urllib.request.urlopen(req) as res:
         pass
+
+
+def translate_to_english(original_text):
+    return GoogleTranslator(source='auto', target='en').translate(original_text)
