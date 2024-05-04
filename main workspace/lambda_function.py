@@ -6,12 +6,13 @@ import boto3
 from PIL import Image # type: ignore
 from deep_translator import GoogleTranslator
 
+# Standard HTTP header required for LINE Messaging API requests.
 STANDARD_LINE_HEADER = {
     'Content-Type': 'application/json',
     'Authorization': 'Bearer ' + os.environ.get('LINE_CHANNEL_ACCESS_TOKEN')
 }
 
-# This is the main function that AWS Lambda will invoke when the function is triggered
+# This is the main function that AWS Lambda will invoke when the function is triggered. It processes events triggered by LINE messages.
 def lambda_handler(event, context):
     # Iterate over each message event in the received payload
     for message_event in json.loads(event['body'])['events']:
@@ -35,6 +36,7 @@ def lambda_handler(event, context):
     }
 
 
+# This function sends a request to start a loading animation in the LINE chat interface for a specified user.
 def start_loading_animation(user_id):
     url_loading_animation = 'https://api.line.me/v2/bot/chat/loading/start'
     
@@ -42,7 +44,7 @@ def start_loading_animation(user_id):
         
     body = {
         "chatId": user_id,
-        "loadingSeconds": 10
+        "loadingSeconds": 15 
     }
     
     req = urllib.request.Request(url_loading_animation, data=json.dumps(body).encode('utf-8'), method='POST', headers=headers)
@@ -50,6 +52,7 @@ def start_loading_animation(user_id):
         pass
     
 
+#  This function sends a prompt to the OpenAI API endpoint for DALL-E to generate an image based on the given prompt and returns the generated image data.
 def generate(message):
     OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
     URL = 'https://api.openai.com/v1/images/generations'
@@ -69,6 +72,7 @@ def generate(message):
     return "NO DATA"
 
 
+# This function sends a reply message to the user with the generated image using the LINE Messaging API.
 def send_image_reply(message_event, image_url):
     # URL for the LINE Messaging API - reply
     url_message_reply = 'https://api.line.me/v2/bot/message/reply'
@@ -91,5 +95,6 @@ def send_image_reply(message_event, image_url):
         pass
 
 
+# This function translates the given text to English using the Google Translator API. The traslated version is then sent to DALL-E.
 def translate_to_english(original_text):
     return GoogleTranslator(source='auto', target='en').translate(original_text)
